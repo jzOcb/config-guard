@@ -108,6 +108,7 @@ cp scripts/pre-config-hook.sh /path/to/repo/.git/hooks/pre-commit
 ## Related
 
 - [agent-guardrails](https://github.com/jzOcb/agent-guardrails) — Code-level enforcement for AI agents (git hooks, secret detection, import registries)
+- [upgrade-guard](https://github.com/jzOcb/upgrade-guard) — Safe OpenClaw upgrades with snapshot, verification, auto-rollback, and OS-level watchdog
 
 ## License
 
