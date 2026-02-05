@@ -107,10 +107,17 @@ cp scripts/pre-config-hook.sh /path/to/repo/.git/hooks/pre-commit
 - `python3`
 - `curl`
 
-## Related
+## 🛡️ Part of the AI Agent Security Suite
 
-- [agent-guardrails](https://github.com/jzOcb/agent-guardrails) — Code-level enforcement for AI agents (git hooks, secret detection, import registries)
-- [upgrade-guard](https://github.com/jzOcb/upgrade-guard) — Safe OpenClaw upgrades with snapshot, verification, auto-rollback, and OS-level watchdog
+| Tool | What It Prevents |
+|------|-----------------|
+| **[agent-guardrails](https://github.com/jzOcb/agent-guardrails)** | AI rewrites validated code, leaks secrets, bypasses standards |
+| **[config-guard](https://github.com/jzOcb/config-guard)** | AI writes malformed config, crashes gateway |
+| **[upgrade-guard](https://github.com/jzOcb/upgrade-guard)** | Version upgrades break dependencies, no rollback |
+| **[token-guard](https://github.com/jzOcb/token-guard)** | Runaway token costs, budget overruns |
+| **[process-guardian](https://github.com/jzOcb/process-guardian)** | Background processes die silently, no auto-recovery |
+
+📖 **Read the full story:** [I audited my own AI agent system and found it full of holes](https://x.com/xxx111god/status/2019455237048709336)
 
 ## License
 
