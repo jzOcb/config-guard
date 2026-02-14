@@ -48,7 +48,40 @@ rollback() {
     log "Rolled back config from $latest"
 }
 
-# ── Schema validation (uses python3 + jsonschema if available) ──────
+# ── OpenClaw native validation (optional but most reliable) ─────────
+# Validates config by running OpenClaw itself against the candidate file.
+# This catches enum/value errors (e.g., dmPolicy) that heuristic checks miss.
+validate_with_openclaw() {
+    local config_file="$1"
+
+    # Allow disabling when running on machines without OpenClaw installed.
+    if [[ "${CONFIG_GUARD_OPENCLAW_VALIDATE:-1}" == "0" ]]; then
+        warn "Skipping OpenClaw-native validation (CONFIG_GUARD_OPENCLAW_VALIDATE=0)"
+        return 0
+    fi
+
+    if ! command -v openclaw >/dev/null 2>&1; then
+        warn "Skipping OpenClaw-native validation (openclaw CLI not found)"
+        return 0
+    fi
+
+    # Run OpenClaw using the candidate config path. If OpenClaw rejects the config,
+    # this will return non-zero and/or print 'Invalid config'.
+    local out
+    out=$(OPENCLAW_CONFIG_PATH="$config_file" openclaw status --deep 2>&1) || {
+        echo "$out" | sed -n '1,120p' >&2
+        fail "OpenClaw rejected config (native validation failed): $config_file"
+    }
+
+    if echo "$out" | grep -q "Invalid config"; then
+        echo "$out" | sed -n '1,200p' >&2
+        fail "OpenClaw rejected config (native validation found errors): $config_file"
+    fi
+
+    log "OpenClaw-native validation passed ✅"
+}
+
+# ── Schema validation (python semantic checks) ──────────────────────
 validate_schema() {
     local config_file="$1"
 
@@ -238,6 +271,7 @@ wait_for_gateway() {
 cmd_check() {
     log "Validating $CONFIG_PATH..."
     validate_schema "$CONFIG_PATH"
+    validate_with_openclaw "$CONFIG_PATH"
 }
 
 cmd_diff() {
@@ -262,6 +296,14 @@ cmd_apply() {
         warn "Validation failed! Rolling back..."
         cp "$backup_file" "$CONFIG_PATH"
         fail "Config validation failed, restored backup"
+    fi
+
+    # Step 2b: Validate config with OpenClaw itself (catches enum/value issues)
+    log "Step 2b/4: OpenClaw-native validation..."
+    if ! validate_with_openclaw "$CONFIG_PATH"; then
+        warn "OpenClaw-native validation failed! Rolling back..."
+        cp "$backup_file" "$CONFIG_PATH"
+        fail "OpenClaw-native validation failed, restored backup"
     fi
 
     # Step 3: Check critical fields
